@@ -7,16 +7,16 @@ const userSchema = new mongoose.Schema({
     emailAddress: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     roleSelection: { type: String, enum: ['admin', 'user'], required: true },
-    gender: { type: String, required: true },
+    gender: { type: String },
     dateofBirth: { type: Date, required: true },
     profilePicture: { type: String },
     alternateMobileNumber: { type: String },
     emergencyContact: { type: String },
     bankAccountDetails: { type: String },
     prefferredLanguage: { type: String },
-    groupId: {
+    groupIds: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Group'
-    }
+        ref: "Group"
+    }]
 }, { timestamps: true });
 module.exports = mongoose.model('User', userSchema);

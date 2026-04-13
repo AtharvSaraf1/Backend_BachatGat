@@ -25,27 +25,20 @@ exports.registerAdmin = async(req, res) => {
             bankAccountDetails,
             prefferredLanguage,
         } = req.body;
-
         const roleSelection = "admin";
-
         if (!fullName || !mobileNumber || !emailAddress || !password || !gender || !dateofBirth || !groupName || !designation || !officeAddress) {
             return res.status(400).json({ message: "Please provide all required fields missing" });
         }
-
         const userName = fullName;
-
         const existingUser = await User.findOne({
             $or: [{ emailAddress }, { mobileNumber }]
         });
-
         if (existingUser) {
             return res.status(400).json({
                 message: "User with this email or mobile number already exists"
             });
         }
-
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const newUser = new User({
             fullName,
             userName,
@@ -61,37 +54,26 @@ exports.registerAdmin = async(req, res) => {
             bankAccountDetails,
             prefferredLanguage,
         });
-
         await newUser.save();
-
         const newGroup = new Group({
             groupName,
             officeAddress,
             adminId: newUser._id,
             members: [newUser._id],
         });
-
         await newGroup.save();
-
-        newUser.groupId = newGroup._id;
+        newUser.groupIds = [newGroup._id];
         await newUser.save();
-
-        newUser.groupId = newGroup._id;
-        await newUser.save();
-
         const newAdminProfile = new AdminProfile({
             user: newUser._id,
             groupName,
             designation,
             officeAddress,
         });
-
         await newAdminProfile.save();
-
         res.status(201).json({
             message: "Admin registered successfully",
         });
-
     } catch (error) {
         console.error("Error registering admin:", error);
         res.status(500).json({
@@ -100,15 +82,15 @@ exports.registerAdmin = async(req, res) => {
     }
 };
 
-
 exports.addUser = async(req, res) => {
     try {
-
         if (req.user.roleSelection !== "admin") {
-            return res.status(403).json({ message: "Only Admin can add member" });
+            return res.status(403).json({
+                message: "Only Admin can add member"
+            });
         }
-
         const {
+            groupId,
             fullName,
             mobileNumber,
             emailAddress,
@@ -125,96 +107,106 @@ exports.addUser = async(req, res) => {
             prefferredLanguage,
         } = req.body;
 
-        const roleSelection = "user";
-
-        if (!fullName ||
-            !mobileNumber ||
-            !emailAddress ||
-            !gender ||
-            !dateofBirth ||
-            !address ||
-            !occupation ||
-            !incomeRange ||
-            !membershipId
-        ) {
-            return res.status(400).json({ message: "Please provide all required fields" });
-        }
-
-        const existingUser = await User.findOne({
-            $or: [{ emailAddress }, { mobileNumber }]
-        });
-
-        if (existingUser) {
+        if (!groupId) {
             return res.status(400).json({
-                message: "User with this email or mobile number already exists"
+                message: "groupId is required"
             });
         }
-
-        const adminGroupID = req.user.groupId;
-
-        if (!adminGroupID) {
-            return res.status(400).json({
-                message: "Admin groupId missing. Please login again."
-            });
-        }
-
-        const group = await Group.findById(adminGroupID);
-
+        const group = await Group.findById(groupId);
         if (!group) {
             return res.status(404).json({
                 message: "Group not found"
             });
         }
+        if (!req.user.groupIds.includes(groupId)) {
+            return res.status(403).json({
+                message: "Not allowed for this group"
+            });
+        }
+        let user = await User.findOne({ mobileNumber });
+        if (!user) {
 
-        const password = dateofBirth;
-        const userName = fullName;
+            if (!fullName ||
+                !mobileNumber ||
+                !emailAddress ||
+                !gender ||
+                !dateofBirth ||
+                !address ||
+                !occupation ||
+                !incomeRange ||
+                !membershipId
+            ) {
+                return res.status(400).json({
+                    message: "Please provide all required fields"
+                });
+            }
+            const existingUser = await User.findOne({
+                $or: [{ emailAddress }, { mobileNumber }]
+            });
+            if (existingUser) {
+                return res.status(400).json({
+                    message: "User with this email or mobile number already exists"
+                });
+            }
+            const hashedPassword = await bcrypt.hash(dateofBirth, 10);
+            user = new User({
+                fullName,
+                userName: fullName,
+                mobileNumber,
+                emailAddress,
+                password: hashedPassword,
+                roleSelection: "user",
+                gender,
+                dateofBirth,
+                groupIds: [],
+                profilePicture,
+                alternateMobileNumber,
+                emergencyContact,
+                bankAccountDetails,
+                prefferredLanguage,
+            });
+            await user.save();
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = new User({
-            fullName,
-            userName,
-            mobileNumber,
-            emailAddress,
-            password: hashedPassword,
-            roleSelection,
-            gender,
-            dateofBirth,
-            profilePicture,
-            alternateMobileNumber,
-            emergencyContact,
-            bankAccountDetails,
-            prefferredLanguage,
-        });
-
-        await newUser.save();
-
-        group.members.push(newUser._id);
+            group.members.push(user._id);
+            await group.save();
+            user.groupIds.push(group._id);
+            await user.save();
+            const userProfile = new UserProfile({
+                userId: user._id,
+                address,
+                occupation,
+                incomeRange,
+                membershipId: membershipId
+            });
+            await userProfile.save();
+            user.userProfile = userProfile._id;
+            await user.save();
+            const message = `Hello ${fullName}, you have been added to ${group.groupName}. Your username is ${fullName} and password is ${dateofBirth}.`;
+            await sendSMS(mobileNumber, message);
+            return res.status(200).json({
+                message: "New user created and added to group"
+            });
+        }
+        if (group.members.includes(user._id)) {
+            return res.status(400).json({
+                message: "User already exists in this group"
+            });
+        }
+        group.members.push(user._id);
         await group.save();
 
-        const userProfile = new UserProfile({
-            userId: newUser._id,
-            address,
-            occupation,
-            incomeRange,
-            membershipId: membershipId
-        });
+        if (!user.groupIds.includes(group._id)) {
+            user.groupIds.push(group._id);
+            await user.save();
+        }
 
-        await userProfile.save();
+        const message = `Hello ${user.fullName}, you have been added to ${group.groupName}.`;
 
-        newUser.userProfile = userProfile._id;
-        await newUser.save();
-
-        const groupName = group.groupName;
-
-        const message = `Hello ${fullName}, you have been added to ${groupName}. Your username is ${emailAddress} and password is ${dateofBirth}.`;
-
-        await sendSMS(mobileNumber, message);
+        await sendSMS(user.mobileNumber, message);
 
         return res.status(200).json({
-            message: "User added successfully"
+            message: "Existing user added to group successfully"
         });
-
     } catch (error) {
         return res.status(500).json({
             message: error.message
@@ -222,66 +214,47 @@ exports.addUser = async(req, res) => {
     }
 };
 
-
 exports.passwordlogin = async(req, res) => {
     try {
         const { userName, password } = req.body;
-
         if (!userName || !password) {
             return res.status(400).json({ message: "Please fill in all required fields" });
         }
-
         const user = await User.findOne({ userName });
-
         if (!user) {
             return res.status(400).json({ message: "Invalid username or password" });
         }
-
         const isMatch = await bcrypt.compare(password, user.password);
-
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid username or password" });
         }
-
         const token = generateToken(user._id);
-
         res.status(200).json({ message: "Login successful", token });
-
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
-
 exports.sendOTP = async(req, res) => {
     try {
         const { mobileNumber } = req.body;
-
         const user = await User.findOne({ mobileNumber });
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-
         const otpRecord = await OTP.findOne({ mobileNumber });
-
         if (otpRecord) {
-
             if (otpRecord.resendCount >= 3) {
                 return res.status(429).json({
                     message: "Maximum OTP resend attempts reached. Please try again later."
                 })
             }
-
             const timeDiff = (new Date() - otpRecord.lastSentAt) / 1000;
-
             if (timeDiff < 30) {
                 return res.status(429).json({
                     message: `Please wait ${Math.ceil(30 - timeDiff)} seconds before requesting a new OTP.`
                 });
             }
-
             otpRecord.resendCount += 1;
             await otpRecord.save(); // FIX
         }
@@ -329,6 +302,43 @@ exports.verifyOTP = async(req, res) => {
         await OTP.deleteOne({ _id: otpRecord._id });
 
         res.status(200).json({ message: "OTP verified successfully", token });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.createGroup = async(req, res) => {
+    try {
+        const { groupName, officeAddress } = req.body;
+        if (!groupName || !officeAddress) {
+            return res.status(400).json({
+                message: "Group name and office address required"
+            });
+        }
+        const newGroup = new Group({
+            groupName,
+            officeAddress,
+            adminId: req.user._id,
+            members: [req.user._id]
+        });
+        await newGroup.save();
+        req.user.groupIds.push(newGroup._id);
+        await req.user.save();
+        res.status(201).json({
+            message: "Group created successfully"
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.getGroups = async(req, res) => {
+    try {
+        const groups = await Group.find({
+            _id: { $in: req.user.groupIds }
+        }).select("_id groupName");
+
+        res.status(200).json(groups);
 
     } catch (error) {
         res.status(500).json({ message: error.message });
