@@ -16,72 +16,57 @@ exports.registerAdmin = async(req, res) => {
             password,
             gender,
             dateofBirth,
-            groupName,
             designation,
-            officeAddress,
-            profilePicture,
-            alternateMobileNumber,
-            emergencyContact,
-            bankAccountDetails,
-            prefferredLanguage,
+            officeAddress
         } = req.body;
-        const roleSelection = "admin";
-        if (!fullName || !mobileNumber || !emailAddress || !password || !gender || !dateofBirth || !groupName || !designation || !officeAddress) {
-            return res.status(400).json({ message: "Please provide all required fields missing" });
+        if (!fullName || !mobileNumber || !emailAddress || !password) {
+            return res.status(400).json({
+                message: "Missing required fields"
+            });
         }
-        const userName = fullName;
+
         const existingUser = await User.findOne({
             $or: [{ emailAddress }, { mobileNumber }]
         });
+
         if (existingUser) {
             return res.status(400).json({
-                message: "User with this email or mobile number already exists"
+                message: "User already exists"
             });
         }
+
         const hashedPassword = await bcrypt.hash(password, 10);
+
         const newUser = new User({
             fullName,
-            userName,
+            userName: fullName,
             mobileNumber,
             emailAddress,
             password: hashedPassword,
-            roleSelection,
+            roleSelection: "admin",
             gender,
             dateofBirth,
-            profilePicture,
-            alternateMobileNumber,
-            emergencyContact,
-            bankAccountDetails,
-            prefferredLanguage,
+            groupIds: []
         });
+
         await newUser.save();
-        const newGroup = new Group({
-            groupName,
-            officeAddress,
-            adminId: newUser._id,
-            members: [newUser._id],
-        });
-        await newGroup.save();
-        newUser.groupIds = [newGroup._id];
-        await newUser.save();
+
         const newAdminProfile = new AdminProfile({
             user: newUser._id,
-            groupName,
             designation,
-            officeAddress,
+            officeAddress
         });
+
         await newAdminProfile.save();
+
         res.status(201).json({
             message: "Admin registered successfully",
         });
+
     } catch (error) {
-        console.error("Error registering admin:", error);
-        res.status(500).json({
-            message: "Internal server error"
-        });
+        res.status(500).json({ message: error.message });
     }
 };
-
 exports.addUser = async(req, res) => {
     try {
         if (req.user.roleSelection !== "admin") {
@@ -90,7 +75,7 @@ exports.addUser = async(req, res) => {
             });
         }
         const {
-            groupId,
+            groupCode,
             fullName,
             mobileNumber,
             emailAddress,
@@ -106,26 +91,24 @@ exports.addUser = async(req, res) => {
             bankAccountDetails,
             prefferredLanguage,
         } = req.body;
-
-        if (!groupId) {
+        if (!groupCode) {
             return res.status(400).json({
-                message: "groupId is required"
+                message: "groupCode is required"
             });
         }
-        const group = await Group.findById(groupId);
+        const group = await Group.findOne({ groupCode });
         if (!group) {
             return res.status(404).json({
                 message: "Group not found"
             });
         }
-        if (!req.user.groupIds.includes(groupId)) {
+        if (!req.user.groupIds.some(id => id.toString() === group._id.toString())) {
             return res.status(403).json({
                 message: "Not allowed for this group"
             });
         }
         let user = await User.findOne({ mobileNumber });
         if (!user) {
-
             if (!fullName ||
                 !mobileNumber ||
                 !emailAddress ||
@@ -166,7 +149,6 @@ exports.addUser = async(req, res) => {
                 prefferredLanguage,
             });
             await user.save();
-
             group.members.push(user._id);
             await group.save();
             user.groupIds.push(group._id);
@@ -187,23 +169,21 @@ exports.addUser = async(req, res) => {
                 message: "New user created and added to group"
             });
         }
-        if (group.members.includes(user._id)) {
+        if (group.members.some(id => id.toString() === user._id.toString())) {
             return res.status(400).json({
                 message: "User already exists in this group"
             });
         }
-        group.members.push(user._id);
-        await group.save();
-
-        if (!user.groupIds.includes(group._id)) {
+        if (!group.members.some(id => id.toString() === user._id.toString())) {
+            group.members.push(user._id);
+            await group.save();
+        }
+        if (!user.groupIds.some(id => id.toString() === group._id.toString())) {
             user.groupIds.push(group._id);
             await user.save();
         }
-
         const message = `Hello ${user.fullName}, you have been added to ${group.groupName}.`;
-
         await sendSMS(user.mobileNumber, message);
-
         return res.status(200).json({
             message: "Existing user added to group successfully"
         });
@@ -294,7 +274,6 @@ exports.verifyOTP = async(req, res) => {
             return res.status(400).json({ message: "OTP has expired" });
         }
 
-        // FIX: fetch user instead of OTP id
         const user = await User.findOne({ mobileNumber });
 
         const token = generateToken(user._id);
@@ -310,28 +289,61 @@ exports.verifyOTP = async(req, res) => {
 
 exports.createGroup = async(req, res) => {
     try {
-        const { groupName, officeAddress } = req.body;
-        if (!groupName || !officeAddress) {
+        const {
+            groupName,
+            groupCode,
+            village,
+            taluka,
+            district,
+            state,
+            formationDate
+        } = req.body;
+        if (!groupName || !groupCode) {
             return res.status(400).json({
-                message: "Group name and office address required"
+                message: "groupName and groupCode are required"
+            });
+        }
+        const existingName = await Group.findOne({ groupName });
+        if (existingName) {
+            return res.status(400).json({
+                message: "Group name already exists"
+            });
+        }
+        const existingCode = await Group.findOne({ groupCode });
+        if (existingCode) {
+            return res.status(400).json({
+                message: "Group code already exists"
             });
         }
         const newGroup = new Group({
             groupName,
-            officeAddress,
+            groupCode,
+            village,
+            taluka,
+            district,
+            state,
+            formationDate,
             adminId: req.user._id,
             members: [req.user._id]
         });
         await newGroup.save();
-        req.user.groupIds.push(newGroup._id);
-        await req.user.save();
+        if (!req.user.groupIds.includes(newGroup._id)) {
+            req.user.groupIds.push(newGroup._id);
+            await req.user.save();
+        }
         res.status(201).json({
-            message: "Group created successfully"
+            message: "Group created successfully",
+            groupId: newGroup._id,
+            groupName: newGroup.groupName,
+            groupCode: newGroup.groupCode
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            message: error.message
+        });
     }
 };
+
 exports.getGroups = async(req, res) => {
     try {
         const groups = await Group.find({

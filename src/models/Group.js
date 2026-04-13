@@ -7,10 +7,16 @@ const groupSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    officeAddress: {
+    groupCode: {
         type: String,
         required: true,
+        unique: true
     },
+    village: String,
+    taluka: String,
+    district: String,
+    state: String,
+    formationDate: Date,
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     members: [{
         type: mongoose.Schema.Types.ObjectId,
