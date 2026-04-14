@@ -12,6 +12,18 @@ const groupSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    monthlyContribution: {
+        type: Number
+    },
+    groupDuration: {
+        type: Number
+    },
+    startDate: {
+        type: Date
+    },
+    description: {
+        type: String
+    },
     village: String,
     taluka: String,
     district: String,

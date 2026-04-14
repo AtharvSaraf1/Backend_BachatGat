@@ -4,6 +4,10 @@ exports.createGroup = async(req, res) => {
         const {
             groupName,
             groupCode,
+            monthlyContribution,
+            groupDuration,
+            startDate,
+            description,
             village,
             taluka,
             district,
@@ -30,10 +34,14 @@ exports.createGroup = async(req, res) => {
         const newGroup = new Group({
             groupName,
             groupCode,
+            monthlyContribution,
+            groupDuration,
+            startDate,
             village,
             taluka,
             district,
             state,
+            description,
             formationDate,
             adminId: req.user._id,
             members: [req.user._id]
@@ -62,8 +70,13 @@ exports.getGroups = async(req, res) => {
             _id: { $in: req.user.groupIds }
         }).select("_id groupName");
 
-        res.status(200).json(groups);
-
+        const member_group_info = groups.map(g => ({
+            groupId: g._id,
+            groupName: g.groupName,
+            memberCount: g.members.length,
+            monthlyContribution: g.monthlyContribution
+        }));
+        res.status(200).json(member_group_info);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
