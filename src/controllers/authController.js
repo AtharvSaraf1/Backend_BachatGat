@@ -6,6 +6,7 @@ const sendSMS = require('../utils/sendSMS');
 const generateToken = require("../utils/generateToken");
 
 
+
 exports.registerAdmin = async(req, res) => {
     try {
         const {

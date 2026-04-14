@@ -1,5 +1,7 @@
 const sendSMS = require('../utils/sendSMS');
+const bcrypt = require('bcrypt');
 const UserProfile = require('../models/UserProfile');
+const Group = require('../models/Group');
 const User = require('../models/User');
 exports.addUser = async(req, res) => {
     try {
