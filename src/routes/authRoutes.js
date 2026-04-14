@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { registerAdmin, addUser, passwordlogin, sendOTP, verifyOTP, createGroup, getGroups } = require('../controllers/authController');
-const authMiddleware = require('../middlewares/authMiddleWare');
+const { registerAdmin, passwordlogin, sendOTP, verifyOTP } = require('../controllers/authController');
+const { addUser } = require('../controllers/userController');
+const { createGroup, getGroups } = require('../controllers/groupController');
+const authMiddleware = require('../middlewares/authMiddleware');
 const {
     isAdmin
 } = require('../middlewares/adminMiddleware');
