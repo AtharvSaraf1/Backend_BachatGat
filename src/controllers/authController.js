@@ -19,17 +19,17 @@ exports.registerAdmin = async(req, res) => {
             designation,
             officeAddress
         } = req.body;
-        if (!fullName || !mobileNumber || !emailAddress || !password) {
+        if (!fullName || !mobileNumber || !password) {
             return res.status(400).json({
                 message: "Missing required fields"
             });
         }
 
-        const existingUser = await User.findOne({
-            $or: [{ emailAddress }, { mobileNumber }]
+        const existingUserMobileNumber = await User.findOne({
+            mobileNumber
         });
 
-        if (existingUser) {
+        if (existingUserMobileNumber) {
             return res.status(400).json({
                 message: "User already exists"
             });
