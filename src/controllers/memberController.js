@@ -3,26 +3,23 @@ const Group = require('../models/Group');
 const UserProfile = require('../models/UserProfile');
 
 exports.getMemberDashboard = async(req, res) => {
-    try {
-        const user = await User.findById(req.user._id);
-        const group = await Group.findById(user.groupIds[0]);
-        const memberCount = group.members.length;
-        const monthlyContribution = group.monthlyContribution || 0;
-        const totalSavings = monthlyContribution * group.groupDuration;
-        res.json({
-            fullName: user.fullName,
-            totalSavings,
-            group: {
-                groupName: group.groupName,
-                monthlyContribution,
-                groupTotalCollection: memberCount * monthlyContribution
-            }
-        });
+    const userId = req.user._id;
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    const contributions = await Contribution.find({ userId });
+
+    const totalSavings = contributions.reduce((sum, c) => sum + c.amount, 0);
+
+    const loans = await Loan.find({ userId, status: "approved" });
+
+    const totalLoan = loans.reduce((sum, l) => sum + l.amount, 0);
+
+    res.json({
+        totalSavings,
+        totalLoan,
+        netBalance: totalSavings - totalLoan
+    });
 };
+
 exports.getMemberProfile = async(req, res) => {
     const user = await User.findById(req.user._id)
         .select("-password");

@@ -18,9 +18,6 @@ const groupSchema = new mongoose.Schema({
     groupDuration: {
         type: Number
     },
-    startDate: {
-        type: Date
-    },
     description: {
         type: String
     },
@@ -34,6 +31,7 @@ const groupSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
     }],
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Group', groupSchema);

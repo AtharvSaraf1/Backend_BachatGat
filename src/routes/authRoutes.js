@@ -10,6 +10,8 @@ const {
 } = require('../middlewares/adminMiddleware');
 const { getAdminDashboard } = require('../controllers/adminController');
 const { getMemberDashboard, getMemberProfile, updateMemberProfile } = require("../controllers/memberController");
+const { payContribution } = require('../controllers/contibutionController');
+const { requestLoan } = require('../controllers/loanController');
 
 router.post('/send-otp', sendOTP);
 router.post('/verify-otp', verifyOTP);
@@ -22,5 +24,6 @@ router.get('/admin-dashboard', authMiddleware, isAdmin, getAdminDashboard);
 router.get('/member-dashboard', authMiddleware, getMemberDashboard);
 router.get('/member-profile', authMiddleware, getMemberProfile);
 router.put('/update-member-profile', authMiddleware, updateMemberProfile);
-
+router.post('/pay-contribution', authMiddleware, payContribution);
+router.post('/request-loan', authMiddleware, requestLoan);
 module.exports = router;
