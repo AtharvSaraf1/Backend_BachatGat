@@ -1,4 +1,4 @@
-const Contribution = require('../models/Contribution');
+const Contribution = require('../models/contribution');
 const Group = require('../models/Group');
 
 exports.getAdminDashboard = async(req, res) => {
