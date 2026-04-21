@@ -2,7 +2,7 @@ const User = require('../models/User');
 const Group = require('../models/Group');
 const UserProfile = require('../models/UserProfile');
 const Contribution = require('../models/contribution');
-const Loan = require('../models/loan');
+const Loan = require('../models/Loan');
 
 exports.getMemberDashboard = async(req, res) => {
     const userId = req.user._id;

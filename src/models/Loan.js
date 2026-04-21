@@ -13,9 +13,17 @@ const loanSchema = new mongoose.Schema({
         enum: ["pending", "approved", "rejected"],
         default: "pending"
     },
-
+    reason: {
+        type: String
+    },
     requestedAt: { type: Date, default: Date.now },
-    approvedAt: Date
+    approvedAt: {
+        type: Date
+    },
+    remainingAmount: {
+        type: Number,
+        default: 0
+    }
 });
 
 module.exports = mongoose.model("Loan", loanSchema);
