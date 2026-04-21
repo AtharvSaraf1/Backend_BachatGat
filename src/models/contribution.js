@@ -19,6 +19,11 @@ const contributionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    status: {
+        type: String,
+        enum: ["paid", "pending"],
+        default: "paid"
+    },
     paidAt: {
         type: Date,
         default: Date.now

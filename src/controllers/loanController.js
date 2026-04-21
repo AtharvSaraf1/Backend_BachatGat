@@ -4,9 +4,18 @@ const Group = require('../models/Group');
 
 exports.requestLoan = async(req, res) => {
     const { groupCode, amount } = req.body;
-
+    if (!groupCode || !amount) {
+        return res.status(400).json({
+            message: "groupCode and amount are required"
+        });
+    }
     const group = await Group.findOne({ groupCode });
 
+    if (!group) {
+        return res.status(404).json({
+            message: "Group not found"
+        });
+    }
     const contributions = await Contribution.find({
         userId: req.user._id,
         groupId: group._id
@@ -14,16 +23,13 @@ exports.requestLoan = async(req, res) => {
 
     const totalSaved = contributions.reduce((s, c) => s + c.amount, 0);
 
-    if (amount > totalSaved) {
-        return res.status(400).json({
-            message: "Loan exceeds your savings"
-        });
-    }
 
     const loan = await Loan.create({
         userId: req.user._id,
         groupId: group._id,
-        amount
+        amount,
+        reason,
+        status: "pending"
     });
 
     res.json({ message: "Loan requested", loan });

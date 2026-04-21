@@ -1,15 +1,23 @@
 const User = require('../models/User');
 const Group = require('../models/Group');
 const UserProfile = require('../models/UserProfile');
+const Contribution = require('../models/contribution');
+const Loan = require('../models/loan');
 
 exports.getMemberDashboard = async(req, res) => {
     const userId = req.user._id;
 
-    const contributions = await Contribution.find({ userId });
+    const contributions = await Contribution.find({
+        userId: req.user._id,
+        groupId: group._id
+    });
 
     const totalSavings = contributions.reduce((sum, c) => sum + c.amount, 0);
 
-    const loans = await Loan.find({ userId, status: "approved" });
+    const loans = await Loan.find({
+        userId: req.user._id,
+        status: "approved"
+    });
 
     const totalLoan = loans.reduce((sum, l) => sum + l.amount, 0);
 
