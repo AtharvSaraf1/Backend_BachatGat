@@ -1,6 +1,6 @@
 const Group = require('../models/Group');
 const Loan = require('../models/Loan');
-const Contribution = require('../models/Contribution');
+const Contribution = require('../models/contribution');
 
 exports.getAdminDashboard = async(req, res) => {
     try {
