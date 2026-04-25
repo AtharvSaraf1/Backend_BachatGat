@@ -63,21 +63,25 @@ exports.createGroup = async(req, res) => {
         });
     }
 };
-
 exports.getGroups = async(req, res) => {
     try {
         const groups = await Group.find({
             _id: { $in: req.user.groupIds }
-        }).select("_id groupName");
+        }).select("groupName groupCode members monthlyContribution");
 
-        const member_group_info = groups.map(g => ({
-            groupId: g._id,
-            groupName: g.groupName,
-            memberCount: g.members.length,
-            monthlyContribution: g.monthlyContribution
+        const formatted = groups.map(group => ({
+            groupId: group._id,
+            groupName: group.groupName,
+            groupCode: group.groupCode,
+            memberCount: group.members.length,
+            monthlyContribution: group.monthlyContribution
         }));
-        res.status(200).json(member_group_info);
+
+        res.status(200).json(formatted);
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            message: error.message
+        });
     }
 };

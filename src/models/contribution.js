@@ -30,4 +30,6 @@ const contributionSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("Contribution", contributionSchema);
+module.exports =
+    mongoose.models.Contribution ||
+    mongoose.model("Contribution", contributionSchema);
