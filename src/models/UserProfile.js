@@ -6,10 +6,6 @@ const userProfileSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    address: {
-        type: String,
-        required: true
-    },
     occupation: {
         type: String,
         required: true
