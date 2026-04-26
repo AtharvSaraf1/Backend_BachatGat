@@ -37,12 +37,12 @@ exports.addUser = async(req, res) => {
                 message: "You are not allowed to add members in this group"
             });
         }
-
+        const passkey = Math.floor(100000 + Math.random() * 900000);
         let user = await User.findOne({ mobileNumber });
         let isNewUser = false;
 
         if (!user) {
-            const hashedPassword = await bcrypt.hash(dateOfBirth, 10);
+            const hashedPassword = await bcrypt.hash(passkey, 10);
 
             user = new User({
                 fullName,
@@ -74,7 +74,7 @@ exports.addUser = async(req, res) => {
         }
 
         if (isNewUser) {
-            const message = `Hello ${fullName}, you have been added to ${group.groupName}. Your username is your mobile number: ${mobileNumber}, and your password is your date of birth: ${dateOfBirth}.`;
+            const message = `Hello ${fullName}, you have been added to ${group.groupName}. Your username is your mobile number: ${mobileNumber}, and your password is : ${passkey}.`;
 
             await sendSMS(mobileNumber, message);
         }
