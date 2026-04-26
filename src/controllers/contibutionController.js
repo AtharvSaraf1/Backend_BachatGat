@@ -15,7 +15,7 @@ exports.makeContribution = async(req, res) => {
                 message: "Group not found"
             });
         }
-        if (!group.members.includes(req.user._id)) {
+        if (!group.members.some(m => m.userId.toString() === req.user._id.toString())) {
             return res.status(403).json({
                 message: "You are not a member of this group"
             });

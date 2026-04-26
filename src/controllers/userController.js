@@ -32,7 +32,7 @@ exports.addUser = async(req, res) => {
             });
         }
 
-        if (!req.user.groupIds.some(id => id.toString() === group._id.toString())) {
+        if (!req.user.groupIds.some(id => id.toString() === group._id.toString())){
             return res.status(403).json({
                 message: "You are not allowed to add members in this group"
             });
@@ -59,16 +59,19 @@ exports.addUser = async(req, res) => {
             isNewUser = true;
         }
 
-        if (group.members.some(id => id.toString() === user._id.toString())) {
+        if (group.members.some(m => m.userId.toString() === user._id.toString())){
             return res.status(400).json({
                 message: "User already exists in this group"
             });
         }
 
-        group.members.push(user._id);
+        group.members.push({
+            userId: user._id,
+            roleInGroup: "member"
+        });
         await group.save();
 
-        if (!user.groupIds.some(id => id.toString() === group._id.toString())) {
+        if (group.members.some(m => m.userId.toString() === user._id.toString())) {
             user.groupIds.push(group._id);
             await user.save();
         }

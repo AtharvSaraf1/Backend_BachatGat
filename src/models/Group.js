@@ -27,10 +27,23 @@ const groupSchema = new mongoose.Schema({
     state: String,
     formationDate: Date,
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    members: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-    }],
+    members: [
+    {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+        roleInGroup: {
+            type: String,
+            enum: ["admin", "member"],
+            default: "member"
+        },
+        joinedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }
+]
 
 }, { timestamps: true });
 

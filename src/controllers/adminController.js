@@ -2,9 +2,15 @@ const Group = require('../models/Group');
 const Loan = require('../models/Loan');
 const Contribution = require('../models/contribution');
 
-exports.getAdminDashboard = async(req, res) => {
+exports.getAdminDashboard = async (req, res) => {
     try {
-        const groups = await Group.find({ adminId: req.user._id });
+        const adminId = req.user._id;
+        const groups = await Group.find({
+            $or: [
+                { adminId: adminId },   
+                { members: adminId }      
+            ]
+        });
 
         let totalMembers = 0;
         let totalMoney = 0;
@@ -13,8 +19,10 @@ exports.getAdminDashboard = async(req, res) => {
         const groupData = [];
 
         for (const group of groups) {
+
             const memberCount = group.members.length;
             totalMembers += memberCount;
+
             const contributions = await Contribution.find({
                 groupId: group._id
             });
@@ -29,7 +37,6 @@ exports.getAdminDashboard = async(req, res) => {
                 groupId: group._id,
                 status: "approved"
             });
-
             const groupLoan = loans.reduce(
                 (sum, l) => sum + l.amount,
                 0
@@ -43,7 +50,8 @@ exports.getAdminDashboard = async(req, res) => {
                 groupCode: group.groupCode,
                 memberCount,
                 totalMoney: groupMoney,
-                totalLoan: groupLoan
+                totalLoan: groupLoan,
+                isAdmin: group.adminId.toString() === adminId.toString()
             });
         }
 

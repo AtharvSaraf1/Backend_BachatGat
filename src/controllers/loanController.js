@@ -9,6 +9,11 @@ exports.requestLoan = async(req, res) => {
             message: "groupCode and amount are required"
         });
     }
+    if (!group.members.some(m => m.userId.toString() === req.user._id.toString())) {
+        return res.status(403).json({
+            message: "You are not part of this group"
+        });
+    }
     const group = await Group.findOne({ groupCode });
 
     if (!group) {

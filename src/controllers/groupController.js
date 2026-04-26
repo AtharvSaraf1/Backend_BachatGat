@@ -44,7 +44,12 @@ exports.createGroup = async(req, res) => {
             description,
             formationDate,
             adminId: req.user._id,
-            members: [req.user._id]
+            members: [
+                {
+                    userId: req.user._id,
+                    roleInGroup: "admin"
+                }
+            ]
         });
         await newGroup.save();
         if (!req.user.groupIds.includes(newGroup._id)) {
