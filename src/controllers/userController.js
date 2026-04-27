@@ -32,12 +32,12 @@ exports.addUser = async(req, res) => {
             });
         }
 
-        if (!req.user.groupIds.some(id => id.toString() === group._id.toString())){
+        if (!req.user.groupIds.some(id => id.toString() === group._id.toString())) {
             return res.status(403).json({
                 message: "You are not allowed to add members in this group"
             });
         }
-        const passkey = Math.floor(100000 + Math.random() * 900000);
+        const passkey = Math.floor(100000 + Math.random() * 900000).toString();
         let user = await User.findOne({ mobileNumber });
         let isNewUser = false;
 
@@ -59,7 +59,7 @@ exports.addUser = async(req, res) => {
             isNewUser = true;
         }
 
-        if (group.members.some(m => m.userId.toString() === user._id.toString())){
+        if (group.members.some(m => m.userId.toString() === user._id.toString())) {
             return res.status(400).json({
                 message: "User already exists in this group"
             });
