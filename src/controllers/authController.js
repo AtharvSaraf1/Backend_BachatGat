@@ -50,6 +50,7 @@ exports.registerAdmin = async(req, res) => {
 
         const newUser = new User({
             fullName,
+            userName: fullName,
             mobileNumber,
             emailAddress,
             password: hashedPassword,
