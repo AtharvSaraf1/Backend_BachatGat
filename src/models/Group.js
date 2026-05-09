@@ -20,6 +20,19 @@ const groupSchema = new mongoose.Schema({
     district: String,
     state: String,
     formationDate: Date,
+    location: {
+        address: {
+            type: String
+        },
+
+        latitude: {
+            type: Number
+        },
+
+        longitude: {
+            type: Number
+        }
+    },
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     members: [{
         userId: {

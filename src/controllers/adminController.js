@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const { generateToken } = require('../utils/generateToken');
 const Loan = require('../models/Loan');
 const Contribution = require('../models/contribution');
+const geocodeAddress = require("../utils/geocodeAddress");
+const sendSMS = require("../utils/sendSMS");
 
 const registerAdmin = async(req, res) => {
     try {
@@ -145,6 +147,9 @@ const createGroup = async(req, res) => {
                 message: "Group code already exists"
             });
         }
+        const fullAddress =
+            `${village}, ${taluka}, ${district}, ${state}, India`;
+        const location = await geocodeAddress(fullAddress);
         const newGroup = new Group({
             groupName,
             groupCode,
@@ -156,6 +161,11 @@ const createGroup = async(req, res) => {
             state,
             description,
             formationDate,
+            location: {
+                address: fullAddress,
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude
+            },
             adminId: req.user._id,
             members: [{
                 userId: req.user._id,
@@ -361,7 +371,16 @@ const getGroupDetails = async(req, res) => {
                 totalMembers: approvedMembers.length,
                 pendingMembers: pendingMembers.length,
                 rejectedMembers: rejectedMembers.length,
+                village: group.village,
+                taluka: group.taluka,
+                district: group.district,
+                state: group.state,
 
+                location: {
+                    address: group.location ? group.location.address : null,
+                    latitude: group.location ? group.location.latitude : null,
+                    longitude: group.location ? group.location.longitude : null
+                },
                 audioCall: true,
                 videoCall: true
             }
