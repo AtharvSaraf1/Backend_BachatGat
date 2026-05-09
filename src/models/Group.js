@@ -12,12 +12,6 @@ const groupSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    monthlyContribution: {
-        type: Number
-    },
-    groupDuration: {
-        type: Number
-    },
     description: {
         type: String
     },
@@ -27,24 +21,35 @@ const groupSchema = new mongoose.Schema({
     state: String,
     formationDate: Date,
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    members: [
-    {
+    members: [{
         userId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
+            ref: "User",
+            required: true
         },
+
         roleInGroup: {
             type: String,
             enum: ["admin", "member"],
             default: "member"
         },
+
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending"
+        },
+
+        note: {
+            type: String,
+            default: ""
+        },
+
         joinedAt: {
             type: Date,
             default: Date.now
         }
-    }
-]
-
+    }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Group', groupSchema);
