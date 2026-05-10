@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     },
     roleSelection: { type: String, enum: ['admin', 'user'], required: true },
     gender: { type: String },
-    dateOfBirth: { type: Date, required: true },
+    dateOfBirth: { type: Date },
     prefferredLanguage: { type: String },
     groupIds: [{
         type: mongoose.Schema.Types.ObjectId,
