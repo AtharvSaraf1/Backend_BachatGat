@@ -471,6 +471,86 @@ const getGroupMembers = async(req, res) => {
         });
     }
 };
+const getAdminProfile = async(req, res) => {
+    try {
+
+        const adminId = req.user._id;
+
+        const admin = await User.findById(adminId).select(
+            "fullName mobileNumber roleSelection profilePicture upiId bankAccountDetails"
+        );
+
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Admin not found",
+            });
+        }
+
+        const groups = await Group.find({
+            adminId,
+        });
+
+        const groupIds = groups.map(
+            (group) => group._id
+        );
+
+        let totalMembers = 0;
+
+        groups.forEach((group) => {
+            totalMembers +=
+                group.members ? group.members.length || 0 : 0;
+        });
+
+        const contributions =
+            await Contribution.find({
+                groupId: {
+                    $in: groupIds,
+                },
+                status: "paid",
+            });
+
+        let totalCollection = 0;
+
+        contributions.forEach((contribution) => {
+            totalCollection += contribution.amount;
+        });
+
+        res.status(200).json({
+            success: true,
+
+            adminProfile: {
+                fullName: admin.fullName,
+
+                mobileNumber: admin.mobileNumber,
+
+                role: admin.roleSelection,
+
+                profilePicture: admin.profilePicture,
+
+                upiId: admin.upiId || null,
+
+                bankAccount: admin.bankAccountDetails || null,
+
+                overview: {
+                    totalGroups: groups.length,
+
+                    totalMembers,
+
+                    totalCollection,
+                },
+            },
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
 module.exports = {
     registerAdmin,
     addMember,
@@ -478,5 +558,6 @@ module.exports = {
     getAdminGroups,
     getGroupDetails,
     getGroupMembers,
-    createGroup
+    createGroup,
+    getAdminProfile
 };
