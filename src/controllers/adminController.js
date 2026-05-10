@@ -117,69 +117,44 @@ const getAdminDashboardOverview = async(req, res) => {
     }
 };
 const updatePaymentDetails = async(req, res) => {
-
     try {
-
         const {
             upiId,
             accountHolderName,
             accountNumber,
             ifscCode,
-            bankName
+            bankName,
         } = req.body;
 
-        const admin =
-            await User.findById(req.user._id);
+        const admin = await User.findByIdAndUpdate(
+            req.user._id, {
+                $set: {
+                    upiId: upiId,
 
-        if (!admin) {
-
-            return res.status(404).json({
-                success: false,
-                message: "Admin not found"
-            });
-
-        }
-
-        admin.upiId = upiId || admin.upiId;
-
-        admin.bankAccountDetails = {
-            accountHolderName: accountHolderName ||
-                admin.bankAccountDetails ?
-                admin.bankAccountDetails.accountHolderName : null,
-
-            accountNumber: accountNumber ||
-                admin.bankAccountDetails ?
-                admin.bankAccountDetails.accountNumber : null,
-
-            ifscCode: ifscCode ||
-                admin.bankAccountDetails ?
-                admin.bankAccountDetails.ifscCode : null,
-
-            bankName: bankName ||
-                admin.bankAccountDetails ?
-                admin.bankAccountDetails.bankName : null
-        };
-
-        await admin.save();
+                    "bankAccountDetails.accountHolderName": accountHolderName,
+                    "bankAccountDetails.accountNumber": accountNumber,
+                    "bankAccountDetails.ifscCode": ifscCode,
+                    "bankAccountDetails.bankName": bankName,
+                },
+            }, {
+                new: true,
+            }
+        ).select("upiId bankAccountDetails");
 
         res.status(200).json({
             success: true,
             message: "Payment details updated successfully",
             paymentDetails: {
                 upiId: admin.upiId,
-                bankAccountDetails: admin.bankAccountDetails
-            }
+                bankAccountDetails: admin.bankAccountDetails,
+            },
         });
-
     } catch (error) {
-
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message,
         });
-
     }
-
 };
 const createGroup = async(req, res) => {
     try {
