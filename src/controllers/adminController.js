@@ -59,7 +59,7 @@ const registerAdmin = async(req, res) => {
 
         await newUser.save();
 
-        const token = generateToken(newUser._id);
+        const token = generateToken(user._id, user.roleSelection);
 
         res.status(201).json({
             message: "Admin registered successfully",
