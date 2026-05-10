@@ -15,6 +15,32 @@ const userSchema = new mongoose.Schema({
     gender: { type: String },
     dateOfBirth: { type: Date },
     prefferredLanguage: { type: String },
+    upiId: {
+        type: String,
+        default: null
+    },
+
+    bankAccountDetails: {
+        accountHolderName: {
+            type: String,
+            default: null
+        },
+
+        accountNumber: {
+            type: String,
+            default: null
+        },
+
+        ifscCode: {
+            type: String,
+            default: null
+        },
+
+        bankName: {
+            type: String,
+            default: null
+        }
+    },
     groupIds: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Group"

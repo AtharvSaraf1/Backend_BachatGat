@@ -116,6 +116,71 @@ const getAdminDashboardOverview = async(req, res) => {
         });
     }
 };
+const updatePaymentDetails = async(req, res) => {
+
+    try {
+
+        const {
+            upiId,
+            accountHolderName,
+            accountNumber,
+            ifscCode,
+            bankName
+        } = req.body;
+
+        const admin =
+            await User.findById(req.user._id);
+
+        if (!admin) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Admin not found"
+            });
+
+        }
+
+        admin.upiId = upiId || admin.upiId;
+
+        admin.bankAccountDetails = {
+            accountHolderName: accountHolderName ||
+                admin.bankAccountDetails ?
+                admin.bankAccountDetails.accountHolderName : null,
+
+            accountNumber: accountNumber ||
+                admin.bankAccountDetails ?
+                admin.bankAccountDetails.accountNumber : null,
+
+            ifscCode: ifscCode ||
+                admin.bankAccountDetails ?
+                admin.bankAccountDetails.ifscCode : null,
+
+            bankName: bankName ||
+                admin.bankAccountDetails ?
+                admin.bankAccountDetails.bankName : null
+        };
+
+        await admin.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Payment details updated successfully",
+            paymentDetails: {
+                upiId: admin.upiId,
+                bankAccountDetails: admin.bankAccountDetails
+            }
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
 const createGroup = async(req, res) => {
     try {
         const {
@@ -559,5 +624,6 @@ module.exports = {
     getGroupDetails,
     getGroupMembers,
     createGroup,
-    getAdminProfile
+    getAdminProfile,
+    updatePaymentDetails
 };

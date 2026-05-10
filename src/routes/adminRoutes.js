@@ -8,7 +8,8 @@ const {
     getGroupDetails,
     getGroupMembers,
     createGroup,
-    getAdminProfile
+    getAdminProfile,
+    updatePaymentDetails
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
@@ -25,6 +26,12 @@ router.get(
     authMiddleware,
     adminMiddleware,
     getAdminProfile);
+router.put(
+    "/payment-details",
+    authMiddleware,
+    adminMiddleware,
+    updatePaymentDetails
+);
 router.get(
     "/dashboard-overview",
     authMiddleware,
