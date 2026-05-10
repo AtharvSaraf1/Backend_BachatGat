@@ -1,7 +1,7 @@
 const Group = require('../models/Group');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
-const { generateToken } = require('../utils/generateToken');
+const generateToken = require('../utils/generateToken');
 const Loan = require('../models/Loan');
 const Contribution = require('../models/contribution');
 const geocodeAddress = require("../utils/geocodeAddress");
