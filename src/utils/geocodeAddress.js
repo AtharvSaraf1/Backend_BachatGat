@@ -2,7 +2,6 @@ const axios = require("axios");
 
 const geocodeAddress = async(address) => {
     try {
-
         const encodedAddress = encodeURIComponent(address);
 
         const url =
@@ -15,7 +14,10 @@ const geocodeAddress = async(address) => {
         });
 
         if (!response.data || response.data.length === 0) {
-            throw new Error("Location not found");
+            return {
+                latitude: null,
+                longitude: null
+            };
         }
 
         return {
@@ -24,7 +26,10 @@ const geocodeAddress = async(address) => {
         };
 
     } catch (error) {
-        throw new Error(error.message);
+        return {
+            latitude: null,
+            longitude: null
+        };
     }
 };
 
