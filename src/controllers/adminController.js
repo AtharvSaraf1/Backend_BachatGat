@@ -149,7 +149,9 @@ const createGroup = async(req, res) => {
         }
         const fullAddress =
             `${village}, ${taluka}, ${district}, ${state}, India`;
+
         const location = await geocodeAddress(fullAddress);
+
         const newGroup = new Group({
             groupName,
             groupCode,
@@ -161,12 +163,15 @@ const createGroup = async(req, res) => {
             state,
             description,
             formationDate,
+
             location: {
                 address: fullAddress,
-                latitude: coordinates.latitude,
-                longitude: coordinates.longitude
+                latitude: location.latitude,
+                longitude: location.longitude
             },
+
             adminId: req.user._id,
+
             members: [{
                 userId: req.user._id,
                 roleInGroup: "admin",
