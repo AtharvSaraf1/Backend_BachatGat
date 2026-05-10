@@ -6,7 +6,8 @@ const {
     getAdminDashboardOverview,
     getAdminGroups,
     getGroupDetails,
-    getGroupMembers
+    getGroupMembers,
+    createGroup
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
@@ -24,6 +25,12 @@ router.get(
     authMiddleware,
     adminMiddleware,
     getAdminDashboardOverview
+);
+router.post(
+    "/create-group",
+    authMiddleware,
+    adminMiddleware,
+    createGroup
 );
 
 router.get(

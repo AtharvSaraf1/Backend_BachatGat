@@ -457,5 +457,6 @@ module.exports = {
     getAdminDashboardOverview,
     getAdminGroups,
     getGroupDetails,
-    getGroupMembers
+    getGroupMembers,
+    createGroup
 };
