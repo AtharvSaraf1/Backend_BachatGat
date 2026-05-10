@@ -231,7 +231,22 @@ const addMember = async(req, res) => {
             });
         }
 
-        const passkey = Math.floor(100000 + Math.random() * 900000).toString();
+        const firstTwoLetters =
+            fullName.trim().substring(0, 2).toLowerCase();
+
+        const dob = new Date(dateOfBirth);
+
+        const day =
+            String(dob.getDate()).padStart(2, "0");
+
+        const month =
+            String(dob.getMonth() + 1).padStart(2, "0");
+
+        const lastFourDigits =
+            mobileNumber.slice(-4);
+
+        const passkey =
+            `${firstTwoLetters}${day}${lastFourDigits}`;
 
         let user = await User.findOne({ mobileNumber });
         let isNewUser = false;
