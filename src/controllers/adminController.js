@@ -652,7 +652,7 @@ const getAdminMemberProfile =
         try {
 
             const {
-                groupId,
+                groupCode,
                 memberId,
             } = req.params;
 
@@ -661,7 +661,7 @@ const getAdminMemberProfile =
 
             const group =
                 await Group.findOne({
-                    _id: groupId,
+                    groupCode,
                     adminId,
                 });
 
