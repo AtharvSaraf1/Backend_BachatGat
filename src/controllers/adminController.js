@@ -538,6 +538,7 @@ const getGroupMemebers = async(req, res) => {
             (member) => ({
                 memberId: member.userId ? member.userId._id : null,
                 fullName: member.userId ? member.userId.fullName : null,
+                roleInGroup: member.roleInGroup,
                 status: member.status === "rejected" ?
                     "failed" : member.status || "pending",
             })
