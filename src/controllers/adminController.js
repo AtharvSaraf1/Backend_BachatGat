@@ -591,6 +591,180 @@ const getAdminProfile = async(req, res) => {
 
     }
 };
+const getGroupMemebers = async(req, res) => {
+
+    try {
+
+        const { groupCode } = req.params;
+
+        const group = await Group.findOne({
+            groupCode
+        }).populate(
+            "members.userId",
+            "fullName"
+        );
+
+        if (!group) {
+
+            return res.status(404).json({
+                message: "Group not found"
+            });
+
+        }
+
+        const members = group.members.map(
+            (member) => ({
+
+                memberId: member.userId ? member.userId._id : null,
+
+                fullName: member.userId ? member.userId.fullName : null,
+
+                status: member.status === "rejected" ?
+                    "failed" : member.status || "pending",
+
+            })
+        );
+
+        res.status(200).json({
+
+            message: "Group members fetched successfully",
+
+            members
+
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            message: "Failed to fetch group members",
+
+            error: error.message
+
+        });
+
+    }
+
+};
+const getAdminMemberProfile =
+    async(req, res) => {
+
+        try {
+
+            const {
+                groupId,
+                memberId,
+            } = req.params;
+
+            const adminId =
+                req.user._id;
+
+            const group =
+                await Group.findOne({
+                    _id: groupId,
+                    adminId,
+                });
+
+            if (!group) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Group not found or unauthorized",
+                });
+
+            }
+
+            const memberExists =
+                group.members.find(
+                    (member) =>
+                    member.userId.toString() ===
+                    memberId
+                );
+
+            if (!memberExists) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Member not found in this group",
+                });
+
+            }
+
+            const member =
+                await User.findById(
+                    memberId
+                ).select(
+                    "fullName mobileNumber address dateofBirth profilePicture"
+                );
+
+            if (!member) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Member not found",
+                });
+
+            }
+            const joined_at = group.members.find(
+                (member) =>
+                member.userId.toString() ===
+                memberId
+            ).joinedAt;
+            const contributions =
+                await Contribution.find({
+                    userId: memberId,
+                    groupId,
+                    status: "paid",
+                });
+
+            let totalContribution = 0;
+
+            contributions.forEach(
+                (contribution) => {
+                    totalContribution +=
+                        contribution.amount;
+                }
+            );
+            const loanTaken = 5000;
+
+            const loanPaid = 3000;
+
+            const loanRemaining =
+                loanTaken - loanPaid;
+
+            res.status(200).json({
+                success: true,
+
+                memberProfile: {
+
+                    memberId: member._id,
+                    fullName: member.fullName,
+                    mobileNumber: member.mobileNumber,
+                    address: member.address ||
+                        null,
+                    dateOfBirth: member.dateofBirth ||
+                        null,
+                    profilePicture: member.profilePicture ||
+                        null,
+                    memberSince: member.createdAt,
+                    contributionSummary: {
+                        totalContribution,
+                    },
+                    loanSummary: {
+                        loanTaken,
+                        loanPaid,
+                        loanRemaining,
+                    },
+                },
+            });
+
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message,
+            });
+        }
+    };
 module.exports = {
     registerAdmin,
     addMember,
@@ -600,5 +774,7 @@ module.exports = {
     getGroupMembers,
     createGroup,
     getAdminProfile,
-    updatePaymentDetails
+    updatePaymentDetails,
+    getGroupMemebers,
+    getAdminMemberProfile
 };

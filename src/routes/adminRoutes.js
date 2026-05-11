@@ -9,7 +9,9 @@ const {
     getGroupMembers,
     createGroup,
     getAdminProfile,
-    updatePaymentDetails
+    updatePaymentDetails,
+    getGroupMemebers,
+    getAdminMemberProfile
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
@@ -31,6 +33,12 @@ router.put(
     authMiddleware,
     adminMiddleware,
     updatePaymentDetails
+);
+router.get(
+    "/groups/:groupCode/members",
+    authMiddleware,
+    adminMiddleware,
+    getGroupMemebers
 );
 router.get(
     "/dashboard-overview",
@@ -71,6 +79,13 @@ router.post(
     authMiddleware,
     adminMiddleware,
     addMember
+);
+
+router.get(
+    "/groups/:groupCode/members/:memberId",
+    authMiddleware,
+    adminMiddleware,
+    getAdminMemberProfile
 );
 
 module.exports = router;
